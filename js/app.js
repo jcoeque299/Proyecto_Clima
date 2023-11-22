@@ -5,6 +5,7 @@ const formulario = document.querySelector("#formulario")
 const btnSubmit = document.querySelector("#formulario input[type='submit']")
 
 const url = `https://api.openweathermap.org/data/2.5/weather?q=${ciudad.value},${pais.value}&appid=${apiKey}&units=metric`
+let ubicacionesGuardadas = []
 
 formulario.addEventListener("submit", function() {
     enviarRequest(event, url)
@@ -133,6 +134,10 @@ function activarBoton() {
 }
 
 function guardarUbicacion(ciudad, pais) {
-    localStorage.setItem("url", JSON.stringify([...JSON.parse(localStorage.getItem("url")) ?? [], `https://api.openweathermap.org/data/2.5/weather?q=${ciudad},${pais}&appid=${apiKey}&units=metric`]))
+    const url = `https://api.openweathermap.org/data/2.5/weather?q=${ciudad},${pais}&appid=${apiKey}&units=metric`
+    if (!ubicacionesGuardadas.includes(url)) {
+        ubicacionesGuardadas = JSON.stringify([...JSON.parse(localStorage.getItem("url")) ?? [], url])
+        localStorage.setItem("url", ubicacionesGuardadas)
+    }
 }
 //Funcionalidades nuevas: Mas datos de clima, vigilar clima que añada ciudades a una lista y puedas acceder a una ventana nueva donde ver el clima de las ciudades añadidas, seleccionar ubicacion con un mapa de google maps (usar coordenadas en vez de city y country?) y que se actualice automaticamente cada cierto tiempo que estes dentro de la pagina
