@@ -1,3 +1,5 @@
+//Selectores
+
 const pais = document.querySelector("#pais")
 const ciudad = document.querySelector("#ciudad")
 const resultado = document.querySelector("#resultado")
@@ -6,6 +8,8 @@ const btnSubmit = document.querySelector("#formulario input[type='submit']")
 const mapContainer = document.querySelector("#mapContainer")
 const btnFormulario = document.querySelector("#ciudad_pais")
 const btnMapa = document.querySelector("#coordenadas")
+
+//Variables
 
 const map = new mapboxgl.Map({
     container: 'map', // container ID
@@ -21,6 +25,18 @@ let url
 let clima
 let ubicacionesGuardadas = JSON.parse(localStorage.getItem("url")) ?? []
 
+//Event listeners
+
+map.on("click", obtenerCoordenadas)
+formulario.addEventListener("submit", function() {
+    enviarRequest(event, "ciudad_pais")
+})
+ciudad.addEventListener("blur", validarDatos)
+btnFormulario.addEventListener("click",alternarForm)
+btnMapa.addEventListener("click",alternarMapa)
+
+//Funciones
+
 function obtenerCoordenadas(e) {
     mapMarker.remove()
     mapMarker.setLngLat(e.lngLat)
@@ -31,15 +47,6 @@ function obtenerCoordenadas(e) {
     }
     enviarRequest(event, "coordenadas")
 }
-
-map.on("click", obtenerCoordenadas)
-formulario.addEventListener("submit", function() {
-    enviarRequest(event, "ciudad_pais")
-})
-ciudad.addEventListener("blur", validarDatos)
-btnFormulario.addEventListener("click",alternarForm)
-btnMapa.addEventListener("click",alternarMapa)
-
 
 function enviarRequest(e, modo) {
     if (modo === "coordenadas") {
@@ -61,7 +68,8 @@ function enviarRequest(e, modo) {
         temperaturaMin: Math.round(data.main.temp_min),
         sensacionTermica: Math.round(data.main.feels_like),
         humedad: data.main.humidity,
-        viento: data.wind.speed
+        viento: data.wind.speed,
+        timestamp: data.dt
     })
     .then(function() {
         mostrarHTML(clima)
@@ -129,10 +137,10 @@ function mostrarHTML(clima) {
     vientoHTML.classList.add("text-xl", "mt-2", "text-center")
     vientoHTML.textContent = `Viento: ${clima.viento}m/s`
 
-    const vigilarUbicacion = document.createElement("button")
-    vigilarUbicacion.classList.add("mt-5", "w-full", "bg-yellow-500", "p-3", "uppercase", "font-bold", "cursor-pointer", "rounded")
-    vigilarUbicacion.textContent = `Guardar ubicación`
-    vigilarUbicacion.addEventListener("click", function() {
+    const guardarUbicacionHTML = document.createElement("button")
+    guardarUbicacionHTML.classList.add("mt-5", "w-full", "bg-yellow-500", "p-3", "uppercase", "font-bold", "cursor-pointer", "rounded")
+    guardarUbicacionHTML.textContent = `Guardar ubicación`
+    guardarUbicacionHTML.addEventListener("click", function() {
         guardarUbicacion(clima)
     })
 
@@ -145,9 +153,19 @@ function mostrarHTML(clima) {
     card.appendChild(sensacionTermicaHTML)
     card.appendChild(humedadHTML)
     card.appendChild(vientoHTML)
-    card.appendChild(vigilarUbicacion)
+    card.appendChild(guardarUbicacionHTML)
 
     resultado.appendChild(card)
+}
+
+function guardarUbicacion(clima) {
+    if (!ubicacionesGuardadas.includes(clima.ciudad)) {
+        ubicacionesGuardadas = JSON.stringify([...JSON.parse(localStorage.getItem("url")) ?? [], clima])
+        localStorage.setItem("url", ubicacionesGuardadas)
+        mostrarOK(resultado, "Ubicación guardada con éxito")
+        return
+    }
+    mostrarError(resultado, "La ubicación actual ya está guardada")
 }
 
 function mostrarOK(referencia, mensaje) {
@@ -203,14 +221,3 @@ function alternarMapa() {
     mapContainer.classList.remove("hidden")
     formulario.classList.add("hidden")
 }
-
-function guardarUbicacion(clima) {
-    if (!ubicacionesGuardadas.includes(clima.ciudad)) {
-        ubicacionesGuardadas = JSON.stringify([...JSON.parse(localStorage.getItem("url")) ?? [], clima])
-        localStorage.setItem("url", ubicacionesGuardadas)
-        mostrarOK(resultado, "Ubicación guardada con éxito")
-        return
-    }
-    mostrarError(resultado, "La ubicación actual ya está guardada")
-}
-//Funcionalidades nuevas: Mas datos de clima, vigilar clima que añada ciudades a una lista y puedas acceder a una ventana nueva donde ver el clima de las ciudades añadidas, seleccionar ubicacion con un mapa de google maps (usar coordenadas en vez de city y country?) y que se actualice automaticamente cada cierto tiempo que estes dentro de la pagina

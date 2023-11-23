@@ -1,9 +1,36 @@
+//Selectores
+
 const resultado = document.querySelector("#resultado")
+
+//Variables
+
+let url
+let clima
 let ubicacionesGuardadas = JSON.parse(localStorage.getItem("url")) ?? []
 
+//Event listeners
+
 document.addEventListener("DOMContentLoaded", function() {
+    iniciarTimer()
+    actualizarDatos()
     mostrarHTML(ubicacionesGuardadas)
 })
+
+//Funciones
+
+function iniciarTimer() {
+    setInterval(actualizarDatos, 1800000)
+}
+
+function actualizarDatos() {
+    ubicacionesGuardadas.forEach((ubicacion) => {
+        const horaActual = new Date().getTime()/1000.0
+        if ((horaActual-ubicacion.timestamp > 1800)) {
+            url = `https://api.openweathermap.org/data/2.5/weather?q=${ubicacion.ciudad},${ubicacion.pais}&appid=${apiKey}&units=metric`
+            enviarRequest(url)
+        }
+    })
+}
 
 function enviarRequest(url) {
     fetch(url)
@@ -17,10 +44,14 @@ function enviarRequest(url) {
         temperaturaMin: Math.round(data.main.temp_min),
         sensacionTermica: Math.round(data.main.feels_like),
         humedad: data.main.humidity,
-        viento: data.wind.speed
+        viento: data.wind.speed,
+        timestamp: data.dt
     })
     .then(function() {
-        mostrarHTML(clima)
+        ubicacionesGuardadas = ubicacionesGuardadas.filter((ubicacionGuardada) => ubicacionGuardada.ciudad !== clima.ciudad)
+        ubicacionesGuardadas = [...ubicacionesGuardadas, clima]
+        localStorage.setItem("url", JSON.stringify(ubicacionesGuardadas))
+        mostrarHTML(ubicacionesGuardadas)
     })
 }
 
