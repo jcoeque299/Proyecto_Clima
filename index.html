@@ -10,22 +10,27 @@
     <link href="css/tailwind.min.css" rel="stylesheet" />
   </head>
   <body>
-    <div class="container mx-auto">
-      <h1
-        id="titulo"
-        class="text-4xl mt-5 text-white font-bold uppercase text-center"
-      >
-        Busca el Clima
-      </h1>
-      <a href="ubicacionesGuardadas.html">Ubicaciones guardadas</a>
+    <nav class="relative px-4 py-4 flex justify-between items-center bg-blue-600">
+      <p class="text-3xl font-bold leading-none" href="#">Consulta el clima</p>
+      <a class="hidden lg:inline-block py-2 px-6 bg-yellow-500 hover:bg-yellow-600 text-sm text-black font-bold rounded-xl transition duration-200" href="ubicacionesGuardadas.html">Ubicaciones guardadas</a>
+    </nav>
+    <div class="navbar-menu relative z-50 hidden">
+      <div class="navbar-backdrop fixed inset-0 bg-gray-800 opacity-25"></div>
+      <nav class="fixed top-0 left-0 bottom-0 flex flex-col w-5/6 max-w-sm py-6 px-6 bg-white border-r overflow-y-auto">
+        <div class="mt-auto">
+          <div class="pt-6">
+            <a class="block px-4 py-3 mb-2 leading-loose text-xs text-center text-black font-semibold bg-yellow-500 hover:bg-yellow-600  rounded-xl" href="ubicacionesGuardadas.html">Ubicaciones guardadas</a>  
+      </nav>
+    </div>
       <div class="max-w-lg mx-auto">
         <div class="p-6 mt-10">
-          <div id="resultado">
-            <p class="text-center text-white mt-6">Elige tu ciudad y país...</p>
-          </div>
-          <div id='map' style='width: 400px; height: 300px;'></div>
+          
+            <button id="ciudad_pais" class="mt-5 w-50 bg-blue-500 p-3 uppercase font-bold cursor-pointer rounded">Introducir ubicacion</button>
+            <button id="coordenadas" class="mt-5 w-50 bg-blue-500 p-3 uppercase font-bold cursor-pointer rounded">Mapa</button>
+          
         </div>
-        <form id="formulario" class="mt-10" action="#" method="POST">
+        <form id="formulario" class="mt-10 bg-blue-400 p-5 rounded" action="#" method="POST">
+          <legend class="font-bold">Introduzca ubicación</legend>
           <div class="mt-5">
             <input
               type="text"
@@ -56,7 +61,16 @@
             value="Obtener Clima"
           />
         </form>
+        <div id="mapContainer" class="mt-10 bg-blue-400 p-5 rounded hidden">
+          <p class="font-bold mb-5">Seleccione un punto en el mapa</p>
+          <div id='map' style='width: 400px; height: 300px;'></div>
+        </div>
+        <div class="p-6 mt-10">
+          <div id="resultado"></div>
+        </div>
       </div>
+      
+      
     </div>
 
     <script src="js/apiKey.js"></script>

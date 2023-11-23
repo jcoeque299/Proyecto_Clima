@@ -3,17 +3,22 @@ const ciudad = document.querySelector("#ciudad")
 const resultado = document.querySelector("#resultado")
 const formulario = document.querySelector("#formulario")
 const btnSubmit = document.querySelector("#formulario input[type='submit']")
+const mapContainer = document.querySelector("#mapContainer")
+const btnFormulario = document.querySelector("#ciudad_pais")
+const btnMapa = document.querySelector("#coordenadas")
+
 const map = new mapboxgl.Map({
     container: 'map', // container ID
     style: 'mapbox://styles/mapbox/streets-v12', // style URL
     center: [-74.5, 40], // starting position [lng, lat]
-    zoom: 9, // starting zoom
+    zoom: 2, // starting zoom
     });
 
-    let mapMarker = new mapboxgl.Marker()
+let mapMarker = new mapboxgl.Marker()
 let coordenadasMarcadas
 
 let url
+let clima
 let ubicacionesGuardadas = JSON.parse(localStorage.getItem("url")) ?? []
 
 function obtenerCoordenadas(e) {
@@ -32,6 +37,9 @@ formulario.addEventListener("submit", function() {
     enviarRequest(event, "ciudad_pais")
 })
 ciudad.addEventListener("blur", validarDatos)
+btnFormulario.addEventListener("click",alternarForm)
+btnMapa.addEventListener("click",alternarMapa)
+
 
 function enviarRequest(e, modo) {
     if (modo === "coordenadas") {
@@ -44,7 +52,20 @@ function enviarRequest(e, modo) {
     }
     fetch(url)
     .then(data => data.json())
-    .then(data => mostrarHTML(data.name, data.sys.country, data.weather[0].icon, Math.round(data.main.temp), Math.round(data.main.temp_max), Math.round(data.main.temp_min), Math.round(data.main.feels_like), data.main.humidity, data.wind))
+    .then(data => clima = {
+        ciudad: data.name,
+        pais: data.sys.country,
+        tiempo: data.weather[0].icon,
+        temperatura: Math.round(data.main.temp),
+        temperaturaMax: Math.round(data.main.temp_max),
+        temperaturaMin: Math.round(data.main.temp_min),
+        sensacionTermica: Math.round(data.main.feels_like),
+        humedad: data.main.humidity,
+        viento: data.wind.speed
+    })
+    .then(function() {
+        mostrarHTML(clima)
+    })
     .catch(function() {
         mostrarError(formulario, "Ubicación no encontrada")
     })
@@ -61,71 +82,72 @@ function validarDatos(e) {
     }
 }
 
-function mostrarHTML(ciudad, pais, tiempo, temp, maxTemp, minTemp, sensacionTermica, humedad, viento) {
+function mostrarHTML(clima) {
     limpiarHTML()
     limpiarError(formulario)
 
-    const resultadoColumna1 = document.createElement("div")
-    resultadoColumna1.classList.add("float-left")
+    const card = document.createElement("div")
+    card.classList.add("max-w-sm", "rounded", "overflow-hidden", "shadow-lg")
 
-    const resultadoColumna2 = document.createElement("div")
-    resultadoColumna2.classList.add("float-right")
-
-    const ciudadHTML = document.createElement("p")
-    ciudadHTML.classList.add("text-4xl", "mt-5", "text-white", "font-bold", "uppercase","text-center")
-    ciudadHTML.textContent = ciudad
-
-    const paisHTML = document.createElement("p")
-    paisHTML.classList.add("text-2xl", "mt-5", "text-white", "font-bold", "uppercase","text-center")
-    paisHTML.textContent = pais
+    const cardTitle = document.createElement("p")
+    cardTitle.classList.add("text-3xl", "uppercase", "text-center", "font-bold")
+    cardTitle.textContent = `${clima.ciudad}`
 
     const tiempoHTML = document.createElement("img")
-    tiempoHTML.src = `https://openweathermap.org/img/wn/${tiempo}@2x.png`
+    tiempoHTML.classList.add("block", "m-auto")
+    tiempoHTML.src = `https://openweathermap.org/img/wn/${clima.tiempo}@2x.png`
+
+    const ciudadHTML = document.createElement("p")
+    ciudadHTML.classList.add("text-xl", "mt-2", "text-center")
+    ciudadHTML.textContent = clima.ciudad
+
+    const paisHTML = document.createElement("p")
+    paisHTML.classList.add("text-xl", "mt-2", "text-center")
+    paisHTML.textContent = clima.pais
 
     const tempHTML = document.createElement("p")
-    tempHTML.classList.add("text-3xl", "mt-5", "text-white", "font-bold", "uppercase","text-center")
-    tempHTML.textContent = `${temp}ºC`
+    tempHTML.classList.add("text-xl", "mt-2", "text-center")
+    tempHTML.textContent = `${clima.temperatura}ºC`
 
     const tempMinHTML = document.createElement("p")
-    tempMinHTML.classList.add("text-xl", "mt-5", "text-white", "font-bold", "uppercase","text-center")
-    tempMinHTML.textContent = `Min: ${minTemp}ºC`
+    tempMinHTML.classList.add("text-xl", "mt-2", "text-center")
+    tempMinHTML.textContent = `Min: ${clima.temperaturaMin}ºC`
 
     const tempMaxHTML = document.createElement("p")
-    tempMaxHTML.classList.add("text-xl", "mt-5", "text-white", "font-bold", "uppercase","text-center")
-    tempMaxHTML.textContent = `Max: ${maxTemp}ºC`
+    tempMaxHTML.classList.add("text-xl", "mt-2", "text-center")
+    tempMaxHTML.textContent = `Max: ${clima.temperaturaMax}ºC`
 
     const sensacionTermicaHTML = document.createElement("p")
-    sensacionTermicaHTML.classList.add("text-xl", "mt-5", "text-white", "font-bold", "uppercase","text-center")
-    sensacionTermicaHTML.textContent = `Sensación termica: ${sensacionTermica}ºC`
+    sensacionTermicaHTML.classList.add("text-xl", "mt-2", "text-center")
+    sensacionTermicaHTML.textContent = `Sensación termica: ${clima.sensacionTermica}ºC`
 
     const humedadHTML = document.createElement("p")
-    humedadHTML.classList.add("text-xl", "mt-5", "text-white", "font-bold", "uppercase","text-center")
-    humedadHTML.textContent = `Humedad: ${humedad}%`
+    humedadHTML.classList.add("text-xl", "mt-2", "text-center")
+    humedadHTML.textContent = `Humedad: ${clima.humedad}%`
 
     const vientoHTML = document.createElement("p")
-    vientoHTML.classList.add("text-xl", "mt-5", "text-white", "font-bold", "uppercase","text-center")
-    vientoHTML.textContent = `Viento: ${viento.speed}m/s`
+    vientoHTML.classList.add("text-xl", "mt-2", "text-center")
+    vientoHTML.textContent = `Viento: ${clima.viento}m/s`
 
     const vigilarUbicacion = document.createElement("button")
     vigilarUbicacion.classList.add("mt-5", "w-full", "bg-yellow-500", "p-3", "uppercase", "font-bold", "cursor-pointer", "rounded")
     vigilarUbicacion.textContent = `Guardar ubicación`
     vigilarUbicacion.addEventListener("click", function() {
-        guardarUbicacion(ciudad, pais)
+        guardarUbicacion(clima)
     })
 
-    resultadoColumna1.appendChild(ciudadHTML)
-    resultadoColumna1.appendChild(paisHTML)
-    resultadoColumna1.appendChild(tiempoHTML)
-    resultadoColumna2.appendChild(tempHTML)
-    resultadoColumna2.appendChild(tempMinHTML)
-    resultadoColumna2.appendChild(tempMaxHTML)
-    resultadoColumna2.appendChild(sensacionTermicaHTML)
-    resultadoColumna2.appendChild(humedadHTML)
-    resultadoColumna2.appendChild(vientoHTML)
+    card.appendChild(cardTitle)
+    card.appendChild(tiempoHTML)
+    card.appendChild(tiempoHTML)
+    card.appendChild(tempHTML)
+    card.appendChild(tempMinHTML)
+    card.appendChild(tempMaxHTML)
+    card.appendChild(sensacionTermicaHTML)
+    card.appendChild(humedadHTML)
+    card.appendChild(vientoHTML)
+    card.appendChild(vigilarUbicacion)
 
-    resultado.appendChild(resultadoColumna1)
-    resultado.appendChild(resultadoColumna2)
-    resultado.appendChild(vigilarUbicacion)
+    resultado.appendChild(card)
 }
 
 function mostrarOK(referencia, mensaje) {
@@ -172,10 +194,19 @@ function activarBoton() {
     btnSubmit.disabled = false
 }
 
-function guardarUbicacion(ciudad, pais) {
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${ciudad},${pais}&appid=${apiKey}&units=metric`
-    if (!ubicacionesGuardadas.includes(url)) {
-        ubicacionesGuardadas = JSON.stringify([...JSON.parse(localStorage.getItem("url")) ?? [], url])
+function alternarForm() {
+    formulario.classList.remove("hidden")
+    mapContainer.classList.add("hidden")
+}
+
+function alternarMapa() {
+    mapContainer.classList.remove("hidden")
+    formulario.classList.add("hidden")
+}
+
+function guardarUbicacion(clima) {
+    if (!ubicacionesGuardadas.includes(clima.ciudad)) {
+        ubicacionesGuardadas = JSON.stringify([...JSON.parse(localStorage.getItem("url")) ?? [], clima])
         localStorage.setItem("url", ubicacionesGuardadas)
         mostrarOK(resultado, "Ubicación guardada con éxito")
         return
