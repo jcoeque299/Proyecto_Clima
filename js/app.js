@@ -3,21 +3,48 @@ const ciudad = document.querySelector("#ciudad")
 const resultado = document.querySelector("#resultado")
 const formulario = document.querySelector("#formulario")
 const btnSubmit = document.querySelector("#formulario input[type='submit']")
+const map = new mapboxgl.Map({
+    container: 'map', // container ID
+    style: 'mapbox://styles/mapbox/streets-v12', // style URL
+    center: [-74.5, 40], // starting position [lng, lat]
+    zoom: 9, // starting zoom
+    });
 
-const url = `https://api.openweathermap.org/data/2.5/weather?q=${ciudad.value},${pais.value}&appid=${apiKey}&units=metric`
-let ubicacionesGuardadas = []
+    let mapMarker = new mapboxgl.Marker()
+let coordenadasMarcadas
 
+let url
+let ubicacionesGuardadas = JSON.parse(localStorage.getItem("url")) ?? []
+
+function obtenerCoordenadas(e) {
+    mapMarker.remove()
+    mapMarker.setLngLat(e.lngLat)
+    mapMarker.addTo(map)
+    coordenadasMarcadas = {
+        lon: e.lngLat.lng,
+        lat: e.lngLat.lat
+    }
+    enviarRequest(event, "coordenadas")
+}
+
+map.on("click", obtenerCoordenadas)
 formulario.addEventListener("submit", function() {
-    enviarRequest(event, url)
+    enviarRequest(event, "ciudad_pais")
 })
 ciudad.addEventListener("blur", validarDatos)
 
-function enviarRequest(e, url) {
-    e.preventDefault()
-    
+function enviarRequest(e, modo) {
+    if (modo === "coordenadas") {
+        url = `https://api.openweathermap.org/data/2.5/weather?lat=${coordenadasMarcadas.lat}&lon=${coordenadasMarcadas.lon}&appid=${apiKey}&units=metric`
+        
+    }
+    else if (modo === "ciudad_pais") {
+        e.preventDefault()
+        url = `https://api.openweathermap.org/data/2.5/weather?q=${ciudad.value},${pais.value}&appid=${apiKey}&units=metric`
+    }
     fetch(url)
     .then(data => data.json())
-    .then(data => mostrarHTML(data.weather[0].icon, Math.round(data.main.temp), Math.round(data.main.temp_max), Math.round(data.main.temp_min), Math.round(data.main.feels_like), data.main.humidity, data.wind,data.sys.sunrise, data.sys.sunset, data.timezone))
+    .then(data => mostrarHTML(data.name, data.sys.country, data.weather[0].icon, Math.round(data.main.temp), Math.round(data.main.temp_max), Math.round(data.main.temp_min), Math.round(data.main.feels_like), data.main.humidity, data.wind))
     .catch(function() {
         mostrarError(formulario, "Ubicación no encontrada")
     })
@@ -34,26 +61,25 @@ function validarDatos(e) {
     }
 }
 
-function mostrarHTML(tiempo, temp, maxTemp, minTemp, sensacionTermica, humedad, viento, amanecer, atardecer, zonaHoraria) {
+function mostrarHTML(ciudad, pais, tiempo, temp, maxTemp, minTemp, sensacionTermica, humedad, viento) {
     limpiarHTML()
     limpiarError(formulario)
 
     const resultadoColumna1 = document.createElement("div")
-    //resultadoColumna1.classList.add("flex-col")
+    resultadoColumna1.classList.add("float-left")
 
     const resultadoColumna2 = document.createElement("div")
-    //resultadoColumna2.classList.add("flex-col")
+    resultadoColumna2.classList.add("float-right")
 
     const ciudadHTML = document.createElement("p")
     ciudadHTML.classList.add("text-4xl", "mt-5", "text-white", "font-bold", "uppercase","text-center")
-    ciudadHTML.textContent = ciudad.value
+    ciudadHTML.textContent = ciudad
 
     const paisHTML = document.createElement("p")
     paisHTML.classList.add("text-2xl", "mt-5", "text-white", "font-bold", "uppercase","text-center")
-    paisHTML.textContent = pais.value
+    paisHTML.textContent = pais
 
     const tiempoHTML = document.createElement("img")
-    //tiempoHTML.classList.add()
     tiempoHTML.src = `https://openweathermap.org/img/wn/${tiempo}@2x.png`
 
     const tempHTML = document.createElement("p")
@@ -82,15 +108,15 @@ function mostrarHTML(tiempo, temp, maxTemp, minTemp, sensacionTermica, humedad, 
 
     const vigilarUbicacion = document.createElement("button")
     vigilarUbicacion.classList.add("mt-5", "w-full", "bg-yellow-500", "p-3", "uppercase", "font-bold", "cursor-pointer", "rounded")
-    vigilarUbicacion.textContent = `Vigilar ubicación`
+    vigilarUbicacion.textContent = `Guardar ubicación`
     vigilarUbicacion.addEventListener("click", function() {
-        guardarUbicacion(ciudad.value, pais.value)
+        guardarUbicacion(ciudad, pais)
     })
 
     resultadoColumna1.appendChild(ciudadHTML)
     resultadoColumna1.appendChild(paisHTML)
     resultadoColumna1.appendChild(tiempoHTML)
-    resultadoColumna1.appendChild(tempHTML)
+    resultadoColumna2.appendChild(tempHTML)
     resultadoColumna2.appendChild(tempMinHTML)
     resultadoColumna2.appendChild(tempMaxHTML)
     resultadoColumna2.appendChild(sensacionTermicaHTML)
@@ -100,6 +126,19 @@ function mostrarHTML(tiempo, temp, maxTemp, minTemp, sensacionTermica, humedad, 
     resultado.appendChild(resultadoColumna1)
     resultado.appendChild(resultadoColumna2)
     resultado.appendChild(vigilarUbicacion)
+}
+
+function mostrarOK(referencia, mensaje) {
+    limpiarError(referencia)
+    const alertaExito = document.createElement('p')
+        alertaExito.classList.add('bg-green-500', 'text-white', 'p-2', 'text-center', 'rounded-lg', 'mt-10', 'font-bold', 'text-sm', 'uppercase')
+        alertaExito.textContent = mensaje
+
+        referencia.appendChild(alertaExito)
+
+        setTimeout(() => {
+            alertaExito.remove()
+        }, 3000)
 }
 
 function mostrarError(referencia, mensaje) {
@@ -138,6 +177,9 @@ function guardarUbicacion(ciudad, pais) {
     if (!ubicacionesGuardadas.includes(url)) {
         ubicacionesGuardadas = JSON.stringify([...JSON.parse(localStorage.getItem("url")) ?? [], url])
         localStorage.setItem("url", ubicacionesGuardadas)
+        mostrarOK(resultado, "Ubicación guardada con éxito")
+        return
     }
+    mostrarError(resultado, "La ubicación actual ya está guardada")
 }
 //Funcionalidades nuevas: Mas datos de clima, vigilar clima que añada ciudades a una lista y puedas acceder a una ventana nueva donde ver el clima de las ciudades añadidas, seleccionar ubicacion con un mapa de google maps (usar coordenadas en vez de city y country?) y que se actualice automaticamente cada cierto tiempo que estes dentro de la pagina

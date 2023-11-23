@@ -1,9 +1,14 @@
+const resultado = document.querySelector("#resultado")
+let ubicacionesGuardadas = JSON.parse(localStorage.getItem("url")) ?? []
+
 document.addEventListener("DOMContentLoaded", mostrarUbicacion)
 
 function mostrarUbicacion() {
+    limpiarHTML()
     if (localStorage.getItem("url")) {
-        JSON.parse(localStorage.getItem("url")).forEach((url) => {
+        ubicacionesGuardadas.forEach((url) => {
             enviarRequest(url)
+            return
         })
     }
 }
@@ -14,13 +19,23 @@ function enviarRequest(url) {
     .then(data => mostrarHTML(data.name, data.sys.country, data.weather[0].icon, Math.round(data.main.temp), Math.round(data.main.temp_max), Math.round(data.main.temp_min), Math.round(data.main.feels_like), data.main.humidity, data.wind,data.sys.sunrise, data.sys.sunset, data.timezone))
 }
 
+function borrarUbicacion(ciudad, pais) {
+    const url = `https://api.openweathermap.org/data/2.5/weather?q=${ciudad},${pais}&appid=${apiKey}&units=metric`
+    ubicacionesGuardadas = ubicacionesGuardadas.filter((urlGuardada) => urlGuardada !== url)
+    localStorage.setItem("url", JSON.stringify(ubicacionesGuardadas))
+    mostrarUbicacion()
+}
+
 function mostrarHTML(ciudad, pais, tiempo, temp, maxTemp, minTemp, sensacionTermica, humedad, viento, amanecer, atardecer, zonaHoraria) {
 
+    const ubicacion = document.createElement("div")
+    ubicacion.classList.add("border-white")
+
     const resultadoColumna1 = document.createElement("div")
-    //resultadoColumna1.classList.add("flex-col")
+    resultadoColumna1.classList.add()
 
     const resultadoColumna2 = document.createElement("div")
-    //resultadoColumna2.classList.add("flex-col")
+    resultadoColumna2.classList.add()
 
     const ciudadHTML = document.createElement("p")
     ciudadHTML.classList.add("text-4xl", "mt-5", "text-white", "font-bold", "uppercase","text-center")
@@ -31,7 +46,7 @@ function mostrarHTML(ciudad, pais, tiempo, temp, maxTemp, minTemp, sensacionTerm
     paisHTML.textContent = pais
 
     const tiempoHTML = document.createElement("img")
-    //tiempoHTML.classList.add()
+    tiempoHTML.classList.add("block", "m-auto")
     tiempoHTML.src = `https://openweathermap.org/img/wn/${tiempo}@2x.png`
 
     const tempHTML = document.createElement("p")
@@ -58,6 +73,13 @@ function mostrarHTML(ciudad, pais, tiempo, temp, maxTemp, minTemp, sensacionTerm
     vientoHTML.classList.add("text-xl", "mt-5", "text-white", "font-bold", "uppercase","text-center")
     vientoHTML.textContent = `Viento: ${viento.speed}m/s`
 
+    const borrarUbicacionHTML = document.createElement("button")
+    borrarUbicacionHTML.classList.add("mt-5", "w-full", "bg-yellow-500", "p-3", "uppercase", "font-bold", "cursor-pointer", "rounded")
+    borrarUbicacionHTML.textContent = `Borrar ubicación`
+    borrarUbicacionHTML.addEventListener("click", function() {
+        borrarUbicacion(ciudad, pais)
+    })
+
     resultadoColumna1.appendChild(ciudadHTML)
     resultadoColumna1.appendChild(paisHTML)
     resultadoColumna1.appendChild(tiempoHTML)
@@ -68,7 +90,15 @@ function mostrarHTML(ciudad, pais, tiempo, temp, maxTemp, minTemp, sensacionTerm
     resultadoColumna2.appendChild(humedadHTML)
     resultadoColumna2.appendChild(vientoHTML)
 
-    resultado.appendChild(resultadoColumna1)
-    resultado.appendChild(resultadoColumna2)
-    resultado.appendChild(vigilarUbicacion)
+    ubicacion.appendChild(resultadoColumna1)
+    ubicacion.appendChild(resultadoColumna2)
+    ubicacion.appendChild(borrarUbicacionHTML)
+
+    resultado.appendChild(ubicacion)
+}
+
+function limpiarHTML() {
+    while (resultado.firstChild) {
+        resultado.removeChild(resultado.firstChild)
+    }
 }
