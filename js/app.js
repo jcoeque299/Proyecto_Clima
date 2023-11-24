@@ -14,10 +14,10 @@ const toastMessage = document.querySelector("#toastMessage")
 //Variables
 
 const map = new mapboxgl.Map({
-    container: 'map', // container ID
-    style: 'mapbox://styles/mapbox/streets-v12', // style URL
-    center: [-74.5, 40], // starting position [lng, lat]
-    zoom: 2, // starting zoom
+    container: 'map', // ID de mapContainer en el HTML
+    style: 'mapbox://styles/mapbox/streets-v12',
+    center: [-74.5, 40], // Longitud y latitud
+    zoom: 2,
     });
 
 let mapMarker = new mapboxgl.Marker()
