@@ -8,6 +8,8 @@ const btnSubmit = document.querySelector("#formulario input[type='submit']")
 const mapContainer = document.querySelector("#mapContainer")
 const btnFormulario = document.querySelector("#ciudad_pais")
 const btnMapa = document.querySelector("#coordenadas")
+const toastContainer = document.querySelector("#toastContainer")
+const toastMessage = document.querySelector("#toastMessage")
 
 //Variables
 
@@ -36,6 +38,17 @@ btnFormulario.addEventListener("click",alternarForm)
 btnMapa.addEventListener("click",alternarMapa)
 
 //Funciones
+
+function validarDatos(e) {
+    if (e.target.value === "") {
+        mostrarErrorForm(e.target.parentElement, `El campo ${e.target.id} es obligatorio`)
+        desactivarBoton()
+    }
+    else {
+        limpiarErrorForm(e.target.parentElement)
+        activarBoton()
+    }
+}
 
 function obtenerCoordenadas(e) {
     mapMarker.remove()
@@ -75,24 +88,13 @@ function enviarRequest(e, modo) {
         mostrarHTML(clima)
     })
     .catch(function() {
-        mostrarError(formulario, "Ubicación no encontrada")
+        mostrarErrorForm(formulario, "Ubicación no encontrada")
     })
-}
-
-function validarDatos(e) {
-    if (e.target.value === "") {
-        mostrarError(e.target.parentElement, `El campo ${e.target.id} es obligatorio`)
-        desactivarBoton()
-    }
-    else {
-        limpiarError(e.target.parentElement)
-        activarBoton()
-    }
 }
 
 function mostrarHTML(clima) {
     limpiarHTML()
-    limpiarError(formulario)
+    limpiarErrorForm(formulario)
 
     const card = document.createElement("div")
     card.classList.add("max-w-sm", "rounded", "overflow-hidden", "shadow-lg", "mx-auto", "p-10")
@@ -159,44 +161,60 @@ function mostrarHTML(clima) {
     resultado.appendChild(card)
 }
 
-function guardarUbicacion(clima) {
-    if (!ubicacionesGuardadas.includes(clima.ciudad)) {
-        ubicacionesGuardadas = JSON.stringify([...JSON.parse(localStorage.getItem("url")) ?? [], clima])
-        localStorage.setItem("url", ubicacionesGuardadas)
-        mostrarOK(resultado, "Ubicación guardada con éxito")
-        return
-    }
-    mostrarError(resultado, "La ubicación actual ya está guardada")
-}
-
-function mostrarOK(referencia, mensaje) {
-    limpiarError(referencia)
-    const alertaExito = document.createElement('p')
-        alertaExito.classList.add('bg-green-500', 'text-white', 'p-2', 'text-center', 'rounded-lg', 'mt-10', 'font-bold', 'text-sm', 'uppercase')
-        alertaExito.textContent = mensaje
-
-        referencia.appendChild(alertaExito)
-
-        setTimeout(() => {
-            alertaExito.remove()
-        }, 3000)
-}
-
-function mostrarError(referencia, mensaje) {
-    limpiarError(referencia)
-    const errorHTML = document.createElement("p")
-    errorHTML.classList.add("bg-red-600", "p-2", "text-center", "text-white")
-    errorHTML.textContent = mensaje
-    referencia.appendChild(errorHTML)
-}
-
 function limpiarHTML() {
     while (resultado.firstChild) {
         resultado.removeChild(resultado.firstChild)
     }
 }
 
-function limpiarError(referencia) {
+function guardarUbicacion(clima) {
+    if (clima.ciudad === "" || clima.pais === "" || !clima.ciudad || !clima.pais) {
+        mostrarErrorToast("No se puede guardar una ubicacion indeterminada")
+    }
+    else if (!ubicacionesGuardadas.some((ubicacion) => {
+        return ubicacion.ciudad === clima.ciudad
+    })) {
+        ubicacionesGuardadas = [...ubicacionesGuardadas, clima]
+        localStorage.setItem("url", JSON.stringify(ubicacionesGuardadas))
+        mostrarOKToast("Ubicación guardada con éxito")
+    }
+    else {
+        mostrarErrorToast("La ubicación actual ya está guardada")
+    }
+}
+
+function mostrarOKToast(mensaje) {
+    limpiarToast()
+    toastContainer.classList.add('bg-green-500')
+    toastMessage.textContent = mensaje
+    toastContainer.classList.remove("hidden")
+
+    setTimeout(() => {
+        limpiarToast()
+    }, 3000)
+}
+
+function mostrarErrorToast(mensaje) {
+    limpiarToast()
+    toastContainer.classList.add('bg-red-600')
+    toastMessage.textContent = mensaje
+    toastContainer.classList.remove("hidden")
+}
+
+function limpiarToast() {
+    toastContainer.classList.add("hidden")
+    toastContainer.classList.remove("bg-red-600", "bg-green-500")
+    toastMessage.textContent = ""
+}
+
+function mostrarErrorForm(referencia, mensaje) {
+    const errorHTML = document.createElement("p")
+    errorHTML.classList.add("bg-red-600", "p-2", "text-center", "text-white")
+    errorHTML.textContent = mensaje
+    referencia.appendChild(errorHTML)
+}
+
+function limpiarErrorForm(referencia) {
     const errorHTML = referencia.querySelector(".bg-red-600")
     if (errorHTML) {
         errorHTML.remove()
