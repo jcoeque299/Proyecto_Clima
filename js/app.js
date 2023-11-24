@@ -95,7 +95,8 @@ function mostrarHTML(clima) {
     limpiarError(formulario)
 
     const card = document.createElement("div")
-    card.classList.add("max-w-sm", "rounded", "overflow-hidden", "shadow-lg")
+    card.classList.add("max-w-sm", "rounded", "overflow-hidden", "shadow-lg", "mx-auto", "p-10")
+    card.style.backgroundColor = "rgb(142, 206, 228)"
 
     const cardTitle = document.createElement("p")
     cardTitle.classList.add("text-3xl", "uppercase", "text-center", "font-bold")

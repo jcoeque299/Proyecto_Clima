@@ -71,7 +71,8 @@ function mostrarHTML(climas) {
 
     climas.forEach((clima) => {
         const card = document.createElement("div")
-        card.classList.add("max-w-sm", "rounded", "overflow-hidden", "shadow-lg", "flex", "flex-col", "m-5", "p-20")
+        card.classList.add("max-w-sm", "rounded", "overflow-hidden", "shadow-lg", "flex", "flex-col", "m-5", "p-10")
+        card.style.backgroundColor = "rgb(142, 206, 228)"
 
         const cardTitle = document.createElement("p")
         cardTitle.classList.add("text-3xl", "uppercase", "text-center", "font-bold")

@@ -23,10 +23,10 @@
       </nav>
     </div>
       <div class="max-w-lg mx-auto">
-        <div class="p-6 mt-10">
+        <div class="p-6 mt-10 mx-auto flex flex-row justify-evenly">
           
             <button id="ciudad_pais" class="mt-5 w-50 bg-blue-500 p-3 uppercase font-bold cursor-pointer rounded">Introducir ubicacion</button>
-            <button id="coordenadas" class="mt-5 w-50 bg-blue-500 p-3 uppercase font-bold cursor-pointer rounded">Mapa</button>
+            <button id="coordenadas" class="mt-5 w-50 bg-blue-500 p-3 uppercase font-bold cursor-pointer rounded">Seleccionar en mapa</button>
           
         </div>
         <form id="formulario" class="mt-10 bg-blue-400 p-5 rounded" action="#" method="POST">
@@ -63,7 +63,7 @@
         </form>
         <div id="mapContainer" class="mt-10 bg-blue-400 p-5 rounded hidden">
           <p class="font-bold mb-5">Seleccione un punto en el mapa</p>
-          <div id='map' style='width: 400px; height: 300px;'></div>
+          <div id='map' class="mx-auto" style='width: 400px; height: 300px;'></div>
         </div>
         <div class="p-6 mt-10">
           <div id="resultado"></div>
