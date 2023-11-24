@@ -60,7 +60,7 @@ function mostrarHTML(climas) {
     limpiarHTML()
 
     const cardGroup = document.createElement("div")
-    cardGroup.classList.add("flex", "justify-center")
+    cardGroup.classList.add("flex", "justify-center", "flex-wrap")
 
     climas.forEach((clima) => {
         const card = document.createElement("div")
