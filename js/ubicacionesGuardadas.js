@@ -47,12 +47,19 @@ function enviarRequest(url) {
         viento: data.wind.speed,
         timestamp: data.dt
     })
-    .then(function() {
-        ubicacionesGuardadas = ubicacionesGuardadas.filter((ubicacionGuardada) => ubicacionGuardada.ciudad !== clima.ciudad)
-        ubicacionesGuardadas = [...ubicacionesGuardadas, clima]
-        localStorage.setItem("url", JSON.stringify(ubicacionesGuardadas))
-        mostrarHTML(ubicacionesGuardadas)
-    })
+    .then(clima => modificarDatos(clima))
+}
+
+function modificarDatos(clima) {
+    for (let cont = 0; cont < ubicacionesGuardadas.length; cont++) {
+        ubicacion = ubicacionesGuardadas[cont]
+        if (ubicacion.ciudad === clima.ciudad) {
+            console.log(`${ubicacion.ciudad} ${clima.ciudad} Actualizando`)
+            ubicacionesGuardadas.splice(cont,1,clima)
+        }
+    }
+    localStorage.setItem("url", JSON.stringify(ubicacionesGuardadas))
+    mostrarHTML(ubicacionesGuardadas)
 }
 
 function mostrarHTML(climas) {
