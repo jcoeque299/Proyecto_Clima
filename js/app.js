@@ -199,6 +199,10 @@ function mostrarErrorToast(mensaje) {
     toastContainer.classList.add('bg-red-600')
     toastMessage.textContent = mensaje
     toastContainer.classList.remove("hidden")
+
+    setTimeout(() => {
+        limpiarToast()
+    }, 6000)
 }
 
 function limpiarToast() {
