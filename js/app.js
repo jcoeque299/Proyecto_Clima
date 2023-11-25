@@ -17,8 +17,18 @@ const map = new mapboxgl.Map({
     container: 'map', // ID de mapContainer en el HTML
     style: 'mapbox://styles/mapbox/streets-v12',
     center: [-74.5, 40], // Longitud y latitud
-    zoom: 2,
-    });
+    zoom: 2
+})
+
+const geolocate = new mapboxgl.GeolocateControl ({
+    positionOptions: {
+      enableHighAccuracy: true
+    },
+    fitBoundsOptions: {
+      linear: false
+    },
+    trackUserLocation: false
+})
 
 let mapMarker = new mapboxgl.Marker()
 let coordenadasMarcadas
@@ -29,10 +39,27 @@ let ubicacionesGuardadas = JSON.parse(localStorage.getItem("url")) ?? []
 
 //Event listeners
 
+map.on("load", function() {
+    geolocate.trigger()
+})
+
 map.on("click", obtenerCoordenadas)
 formulario.addEventListener("submit", function() {
     enviarRequest(event, "ciudad_pais")
 })
+
+map.addControl(geolocate)
+
+geolocate.on("geolocate", function(e) {
+    e = {
+        lngLat: {
+            lng: e.coords.longitude,
+            lat: e.coords.latitude
+        }
+    }
+    obtenerCoordenadas(e)
+})
+
 ciudad.addEventListener("blur", validarDatos)
 btnFormulario.addEventListener("click",alternarForm)
 btnMapa.addEventListener("click",alternarMapa)
