@@ -60,11 +60,10 @@ geolocate.on("geolocate", function(e) {
         }
     }
     obtenerCoordenadas(e)
-    mostrarOKToast("Ubicación encontrada con éxito")
 })
 geolocate._updateCamera = () => {} //Evita que la camara del mapa se mueva automáticamente al geolocalizar al usuario, lo cual provocaba problemas de rendimiento graves
 geolocate._onError = () => {
-    mostrarErrorToast("Geolocalizacion no disponible")
+    mostrarWarningToast("Geolocalizacion no disponible")
 }
 
 ciudad.addEventListener("input", validarDatos)
@@ -137,6 +136,10 @@ function obtenerEnlaceImagenUbicacion(clima) {
     .then(function() {
         obtenerImagenUbicacion(url)
     })
+    .catch(function() {
+        mostrarWarningToast("La ubicación no tiene fotos disponibles")
+        limpiarFondo()
+    })
 }
 
 function obtenerImagenUbicacion(urlImagen) {
@@ -153,13 +156,16 @@ function cambiarFondo(urlImagen) {
     fondo.style.backgroundSize = "cover"
 }
 
+function limpiarFondo() {
+    fondo.style.backgroundImage = ""
+}
+
 function mostrarHTML(clima) {
     limpiarHTML()
     limpiarErrorForm(formulario)
 
     const card = document.createElement("div")
-    card.classList.add("max-w-sm", "rounded", "overflow-hidden", "shadow-lg", "mr-auto", "p-8")
-    card.style.backgroundColor = "rgb(142, 206, 228)"
+    card.classList.add("max-w-sm", "rounded", "overflow-hidden", "shadow-lg", "mr-auto", "p-8", "bg-blue-400")
 
     const cardTitle = document.createElement("p")
     cardTitle.classList.add("text-3xl", "uppercase", "text-center", "font-bold")
@@ -252,7 +258,7 @@ function mostrarOKToast(mensaje) {
 
     setTimeout(() => {
         limpiarToast()
-    }, 6000)
+    }, 3000)
 }
 
 function mostrarErrorToast(mensaje) {
@@ -266,9 +272,20 @@ function mostrarErrorToast(mensaje) {
     }, 6000)
 }
 
+function mostrarWarningToast(mensaje) {
+    limpiarToast()
+    toastContainer.classList.add('bg-yellow-600')
+    toastMessage.textContent = mensaje
+    toastContainer.classList.remove("hidden")
+
+    setTimeout(() => {
+        limpiarToast()
+    }, 4000)
+}
+
 function limpiarToast() {
     toastContainer.classList.add("hidden")
-    toastContainer.classList.remove("bg-red-600", "bg-green-500")
+    toastContainer.classList.remove("bg-red-600", "bg-green-500", "bg-yellow-600")
     toastMessage.textContent = ""
 }
 
