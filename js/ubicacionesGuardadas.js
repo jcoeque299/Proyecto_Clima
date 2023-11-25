@@ -115,7 +115,7 @@ function mostrarHTML(climas) {
         vientoHTML.textContent = `Viento: ${clima.viento}m/s`
 
         const borrarUbicacionHTML = document.createElement("button")
-        borrarUbicacionHTML.classList.add("mt-5", "w-full", "bg-yellow-500", "p-3", "uppercase", "font-bold", "cursor-pointer", "rounded")
+        borrarUbicacionHTML.classList.add("mt-5", "w-full", "bg-yellow-500", "hover:bg-yellow-600", "p-3", "uppercase", "font-bold", "cursor-pointer", "rounded")
         borrarUbicacionHTML.textContent = `Borrar ubicación`
         borrarUbicacionHTML.addEventListener("click", function() {
             borrarUbicacion(clima)

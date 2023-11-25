@@ -1,5 +1,6 @@
 //Selectores
 
+const fondo = document.querySelector("#bodyContainer")
 const pais = document.querySelector("#pais")
 const ciudad = document.querySelector("#ciudad")
 const resultado = document.querySelector("#resultado")
@@ -34,6 +35,7 @@ let mapMarker = new mapboxgl.Marker()
 let coordenadasMarcadas
 
 let url
+let urlImagen
 let clima
 let ubicacionesGuardadas = JSON.parse(localStorage.getItem("url")) ?? []
 
@@ -58,10 +60,14 @@ geolocate.on("geolocate", function(e) {
         }
     }
     obtenerCoordenadas(e)
+    mostrarOKToast("Ubicación encontrada con éxito")
 })
 geolocate._updateCamera = () => {} //Evita que la camara del mapa se mueva automáticamente al geolocalizar al usuario, lo cual provocaba problemas de rendimiento graves
+geolocate._onError = () => {
+    mostrarErrorToast("Geolocalizacion no disponible")
+}
 
-ciudad.addEventListener("blur", validarDatos)
+ciudad.addEventListener("input", validarDatos)
 btnFormulario.addEventListener("click",alternarForm)
 btnMapa.addEventListener("click",alternarMapa)
 
@@ -101,6 +107,8 @@ function enviarRequest(e, modo) {
     fetch(url)
     .then(data => data.json())
     .then(data => clima = {
+        longitud: data.coord.lon,
+        latitud: data.coord.lat,
         ciudad: data.name,
         pais: data.sys.country,
         tiempo: data.weather[0].icon,
@@ -114,10 +122,35 @@ function enviarRequest(e, modo) {
     })
     .then(function() {
         mostrarHTML(clima)
+        obtenerEnlaceImagenUbicacion(clima)
     })
     .catch(function() {
         mostrarErrorForm(formulario, "Ubicación no encontrada")
     })
+}
+
+function obtenerEnlaceImagenUbicacion(clima) {
+    url = `https://api.teleport.org/api/locations/${clima.latitud}%2C${clima.longitud}/`
+    fetch(url)
+    .then(data => data.json())
+    .then(data => url = `${data._embedded["location:nearest-urban-areas"][0]._links["location:nearest-urban-area"].href}images`)
+    .then(function() {
+        obtenerImagenUbicacion(url)
+    })
+}
+
+function obtenerImagenUbicacion(urlImagen) {
+    fetch(urlImagen)
+    .then(data => data.json())
+    .then(data => urlImagen = data.photos[0].image.web)
+    .then(function() {
+        cambiarFondo(urlImagen)
+    })
+}
+
+function cambiarFondo(urlImagen) {
+    fondo.style.backgroundImage = `url("${urlImagen}")`
+    fondo.style.backgroundSize = "cover"
 }
 
 function mostrarHTML(clima) {
@@ -169,7 +202,7 @@ function mostrarHTML(clima) {
     vientoHTML.textContent = `Viento: ${clima.viento}m/s`
 
     const guardarUbicacionHTML = document.createElement("button")
-    guardarUbicacionHTML.classList.add("mt-5", "w-full", "bg-yellow-500", "p-3", "uppercase", "font-bold", "cursor-pointer", "rounded")
+    guardarUbicacionHTML.classList.add("mt-5", "w-full", "bg-yellow-500", "hover:bg-yellow-600", "p-3", "uppercase", "font-bold", "cursor-pointer", "rounded")
     guardarUbicacionHTML.textContent = `Guardar ubicación`
     guardarUbicacionHTML.addEventListener("click", function() {
         guardarUbicacion(clima)
@@ -219,7 +252,7 @@ function mostrarOKToast(mensaje) {
 
     setTimeout(() => {
         limpiarToast()
-    }, 3000)
+    }, 6000)
 }
 
 function mostrarErrorToast(mensaje) {
@@ -242,7 +275,7 @@ function limpiarToast() {
 function mostrarErrorForm(referencia, mensaje) {
     limpiarErrorForm(referencia)
     const errorHTML = document.createElement("p")
-    errorHTML.classList.add("bg-red-600", "p-2", "text-center", "text-white")
+    errorHTML.classList.add("bg-red-600", "p-2", "text-center", "font-bold")
     errorHTML.textContent = mensaje
     referencia.appendChild(errorHTML)
 }
@@ -256,11 +289,13 @@ function limpiarErrorForm(referencia) {
 
 function desactivarBoton() {
     btnSubmit.classList.add("opacity-50")
+    btnSubmit.classList.remove("hover:bg-yellow-600")
     btnSubmit.disabled = true
 }
 
 function activarBoton() {
     btnSubmit.classList.remove("opacity-50")
+    btnSubmit.classList.add("hover:bg-yellow-600")
     btnSubmit.disabled = false
 }
 
