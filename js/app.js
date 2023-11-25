@@ -59,6 +59,7 @@ geolocate.on("geolocate", function(e) {
     }
     obtenerCoordenadas(e)
 })
+geolocate._updateCamera = () => {} //Evita que la camara del mapa se mueva automáticamente al geolocalizar al usuario, lo cual provocaba problemas de rendimiento graves
 
 ciudad.addEventListener("blur", validarDatos)
 btnFormulario.addEventListener("click",alternarForm)
