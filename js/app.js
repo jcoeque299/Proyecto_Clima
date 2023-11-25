@@ -35,11 +35,12 @@ let mapMarker = new mapboxgl.Marker()
 let coordenadasMarcadas
 
 let url
-let urlImagen
 let clima
 let ubicacionesGuardadas = JSON.parse(localStorage.getItem("url")) ?? []
 
 //Event listeners
+
+document.addEventListener("DOMContentLoaded", desactivarBoton()) //A pesar de tener el boton con la propiedad "disabled" en el HTML, si se actualiza la página y el formulario mantiene el texto del input y la seleccion del pais de antes de actualizar, el boton funcionará aunque visualmente esté apagado
 
 map.on("load", function() {
     geolocate.trigger()
@@ -61,12 +62,14 @@ geolocate.on("geolocate", function(e) {
     }
     obtenerCoordenadas(e)
 })
+
 geolocate._updateCamera = () => {} //Evita que la camara del mapa se mueva automáticamente al geolocalizar al usuario, lo cual provocaba problemas de rendimiento graves
 geolocate._onError = () => {
     mostrarWarningToast("Geolocalizacion no disponible")
 }
 
 ciudad.addEventListener("input", validarDatos)
+ciudad.addEventListener("click", validarDatos)
 btnFormulario.addEventListener("click",alternarForm)
 btnMapa.addEventListener("click",alternarMapa)
 
@@ -137,22 +140,21 @@ function obtenerEnlaceImagenUbicacion(clima) {
         obtenerImagenUbicacion(url)
     })
     .catch(function() {
-        mostrarWarningToast("La ubicación no tiene fotos disponibles")
         limpiarFondo()
     })
 }
 
-function obtenerImagenUbicacion(urlImagen) {
-    fetch(urlImagen)
+function obtenerImagenUbicacion(url) {
+    fetch(url)
     .then(data => data.json())
-    .then(data => urlImagen = data.photos[0].image.web)
+    .then(data => url = data.photos[0].image.web)
     .then(function() {
-        cambiarFondo(urlImagen)
+        cambiarFondo(url)
     })
 }
 
-function cambiarFondo(urlImagen) {
-    fondo.style.backgroundImage = `url("${urlImagen}")`
+function cambiarFondo(url) {
+    fondo.style.backgroundImage = `linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url("${url}")`
     fondo.style.backgroundSize = "cover"
 }
 
@@ -167,24 +169,20 @@ function mostrarHTML(clima) {
     const card = document.createElement("div")
     card.classList.add("max-w-sm", "rounded", "overflow-hidden", "shadow-lg", "mr-auto", "p-8", "bg-blue-400")
 
-    const cardTitle = document.createElement("p")
-    cardTitle.classList.add("text-3xl", "uppercase", "text-center", "font-bold")
-    cardTitle.textContent = `${clima.ciudad}`
+    const ciudadHTML = document.createElement("p")
+    ciudadHTML.classList.add("text-3xl", "uppercase", "text-center", "font-bold")
+    ciudadHTML.textContent = `${clima.ciudad}`
 
     const tiempoHTML = document.createElement("img")
     tiempoHTML.classList.add("block", "m-auto")
     tiempoHTML.src = `https://openweathermap.org/img/wn/${clima.tiempo}@2x.png`
 
-    const ciudadHTML = document.createElement("p")
-    ciudadHTML.classList.add("text-xl", "mt-2", "text-center")
-    ciudadHTML.textContent = clima.ciudad
-
     const paisHTML = document.createElement("p")
-    paisHTML.classList.add("text-xl", "mt-2", "text-center")
+    paisHTML.classList.add("text-2xl", "mt-2", "text-center", "font-bold")
     paisHTML.textContent = clima.pais
 
     const tempHTML = document.createElement("p")
-    tempHTML.classList.add("text-xl", "mt-2", "text-center")
+    tempHTML.classList.add("text-2xl", "mt-2", "text-center", "font-bold")
     tempHTML.textContent = `${clima.temperatura}ºC`
 
     const tempMinHTML = document.createElement("p")
@@ -214,8 +212,8 @@ function mostrarHTML(clima) {
         guardarUbicacion(clima)
     })
 
-    card.appendChild(cardTitle)
-    card.appendChild(tiempoHTML)
+    card.appendChild(ciudadHTML)
+    card.appendChild(paisHTML)
     card.appendChild(tiempoHTML)
     card.appendChild(tempHTML)
     card.appendChild(tempMinHTML)

@@ -54,7 +54,6 @@ function modificarDatos(clima) {
     for (let cont = 0; cont < ubicacionesGuardadas.length; cont++) {
         ubicacion = ubicacionesGuardadas[cont]
         if (ubicacion.ciudad === clima.ciudad) {
-            console.log(`${ubicacion.ciudad} ${clima.ciudad} Actualizando`)
             ubicacionesGuardadas.splice(cont,1,clima)
         }
     }
@@ -74,24 +73,20 @@ function mostrarHTML(climas) {
         card.classList.add("max-w-sm", "rounded", "overflow-hidden", "shadow-lg", "flex", "flex-col", "m-5", "p-10")
         card.style.backgroundColor = "rgb(142, 206, 228)"
 
-        const cardTitle = document.createElement("p")
-        cardTitle.classList.add("text-3xl", "uppercase", "text-center", "font-bold")
-        cardTitle.textContent = `${clima.ciudad}`
+        const ciudadHTML = document.createElement("p")
+        ciudadHTML.classList.add("text-3xl", "uppercase", "text-center", "font-bold")
+        ciudadHTML.textContent = `${clima.ciudad}`
 
         const tiempoHTML = document.createElement("img")
         tiempoHTML.classList.add("block", "m-auto")
         tiempoHTML.src = `https://openweathermap.org/img/wn/${clima.tiempo}@2x.png`
 
-        const ciudadHTML = document.createElement("p")
-        ciudadHTML.classList.add("text-xl", "mt-2", "text-center")
-        ciudadHTML.textContent = clima.ciudad
-
         const paisHTML = document.createElement("p")
-        paisHTML.classList.add("text-xl", "mt-2", "text-center")
+        paisHTML.classList.add("text-2xl", "mt-2", "text-center", "font-bold")
         paisHTML.textContent = clima.pais
 
         const tempHTML = document.createElement("p")
-        tempHTML.classList.add("text-xl", "mt-2", "text-center")
+        tempHTML.classList.add("text-2xl", "mt-2", "text-center", "font-bold")
         tempHTML.textContent = `${clima.temperatura}ºC`
 
         const tempMinHTML = document.createElement("p")
@@ -121,8 +116,8 @@ function mostrarHTML(climas) {
             borrarUbicacion(clima)
         })
 
-    card.appendChild(cardTitle)
-    card.appendChild(tiempoHTML)
+    card.appendChild(ciudadHTML)
+    card.appendChild(paisHTML)
     card.appendChild(tiempoHTML)
     card.appendChild(tempHTML)
     card.appendChild(tempMinHTML)
