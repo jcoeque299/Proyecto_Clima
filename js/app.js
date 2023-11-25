@@ -14,23 +14,10 @@ const toastMessage = document.querySelector("#toastMessage")
 
 //Variables
 
-const map = new mapboxgl.Map({
-    container: 'map', // ID de mapContainer en el HTML
-    style: 'mapbox://styles/mapbox/streets-v12',
-    center: [-74.5, 40], // Longitud y latitud
-    zoom: 2
-})
+let apiKeys
 
-const geolocate = new mapboxgl.GeolocateControl ({
-    positionOptions: {
-      enableHighAccuracy: true
-    },
-    fitBoundsOptions: {
-      linear: false
-    },
-    trackUserLocation: false
-})
-
+let map
+let geolocate
 let mapMarker = new mapboxgl.Marker()
 let coordenadasMarcadas
 
@@ -40,33 +27,11 @@ let ubicacionesGuardadas = JSON.parse(localStorage.getItem("url")) ?? []
 
 //Event listeners
 
-document.addEventListener("DOMContentLoaded", desactivarBoton()) //A pesar de tener el boton con la propiedad "disabled" en el HTML, si se actualiza la página y el formulario mantiene el texto del input y la seleccion del pais de antes de actualizar, el boton funcionará aunque visualmente esté apagado
-
-map.on("load", function() {
-    geolocate.trigger()
+document.addEventListener("DOMContentLoaded", function() {
+    obtenerApiKeys()
+    desactivarBoton() //A pesar de tener el boton con la propiedad "disabled" en el HTML, si se actualiza la página y el formulario mantiene el texto del input y la seleccion del pais de antes de actualizar, el boton funcionará aunque visualmente esté apagado
 })
 
-map.on("click", obtenerCoordenadas)
-formulario.addEventListener("submit", function() {
-    enviarRequest(event, "ciudad_pais")
-})
-
-map.addControl(geolocate)
-
-geolocate.on("geolocate", function(e) {
-    e = {
-        lngLat: {
-            lng: e.coords.longitude,
-            lat: e.coords.latitude
-        }
-    }
-    obtenerCoordenadas(e)
-})
-
-geolocate._updateCamera = () => {} //Evita que la camara del mapa se mueva automáticamente al geolocalizar al usuario, lo cual provocaba problemas de rendimiento graves
-geolocate._onError = () => {
-    mostrarWarningToast("Geolocalizacion no disponible")
-}
 
 ciudad.addEventListener("input", validarDatos)
 ciudad.addEventListener("click", validarDatos)
@@ -74,6 +39,62 @@ btnFormulario.addEventListener("click",alternarForm)
 btnMapa.addEventListener("click",alternarMapa)
 
 //Funciones
+
+function obtenerApiKeys() {
+    if (!localStorage.getItem("apikeys")) {
+        apiKeys.openweather = prompt("Introduzca API key de OpenWeather. https://home.openweathermap.org/api_keys")
+        apiKeys.mapboxgl = prompt("Introduzca API key de MapBoxGL. https://account.mapbox.com/")
+        mapboxgl.accessToken = apiKeys.mapboxgl
+        localStorage.setItem("apikeys", JSON.stringify(apiKeys))
+        location.reload()
+        return
+    }
+    apiKeys = JSON.parse(localStorage.getItem("apikeys"))
+    mapboxgl.accessToken = apiKeys.mapboxgl
+    generarMapa()
+}
+
+function generarMapa() {
+    map = new mapboxgl.Map({
+        container: 'map', // ID de mapContainer en el HTML
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [-74.5, 40], // Longitud y latitud
+        zoom: 2
+    })
+    geolocate = new mapboxgl.GeolocateControl ({
+        positionOptions: {
+          enableHighAccuracy: true
+        },
+        fitBoundsOptions: {
+          linear: false
+        },
+        trackUserLocation: false
+    })
+    map.on("load", function() {
+        geolocate.trigger()
+    })
+    
+    map.on("click", obtenerCoordenadas)
+    formulario.addEventListener("submit", function() {
+        enviarRequest(event, "ciudad_pais")
+    })
+    
+    map.addControl(geolocate)
+    
+    geolocate.on("geolocate", function(e) {
+        e = {
+            lngLat: {
+                lng: e.coords.longitude,
+                lat: e.coords.latitude
+            }
+        }
+        obtenerCoordenadas(e)
+    })
+    geolocate._updateCamera = () => {} //Evita que la camara del mapa se mueva automáticamente al geolocalizar al usuario, lo cual provocaba problemas de rendimiento graves
+    geolocate._onError = () => {
+    mostrarWarningToast("Geolocalizacion no disponible")
+    }
+}
 
 function validarDatos(e) {
     if (e.target.value === "") {
@@ -99,12 +120,12 @@ function obtenerCoordenadas(e) {
 
 function enviarRequest(e, modo) {
     if (modo === "coordenadas") {
-        url = `https://api.openweathermap.org/data/2.5/weather?lat=${coordenadasMarcadas.lat}&lon=${coordenadasMarcadas.lon}&appid=${apiKey}&units=metric`
+        url = `https://api.openweathermap.org/data/2.5/weather?lat=${coordenadasMarcadas.lat}&lon=${coordenadasMarcadas.lon}&appid=${apiKeys.openweather}&units=metric`
         
     }
     else if (modo === "ciudad_pais") {
         e.preventDefault()
-        url = `https://api.openweathermap.org/data/2.5/weather?q=${ciudad.value},${pais.value}&appid=${apiKey}&units=metric`
+        url = `https://api.openweathermap.org/data/2.5/weather?q=${ciudad.value},${pais.value}&appid=${apiKeys.openweather}&units=metric`
     }
     fetch(url)
     .then(data => data.json())

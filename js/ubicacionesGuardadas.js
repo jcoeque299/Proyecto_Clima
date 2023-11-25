@@ -4,6 +4,8 @@ const resultado = document.querySelector("#resultado")
 
 //Variables
 
+let apiKeys
+
 let url
 let clima
 let ubicacionesGuardadas = JSON.parse(localStorage.getItem("url")) ?? []
@@ -11,12 +13,25 @@ let ubicacionesGuardadas = JSON.parse(localStorage.getItem("url")) ?? []
 //Event listeners
 
 document.addEventListener("DOMContentLoaded", function() {
+    obtenerApiKeys()
     iniciarTimer()
     actualizarDatos()
     mostrarHTML(ubicacionesGuardadas)
 })
 
 //Funciones
+
+function obtenerApiKeys() {
+    if (!localStorage.getItem("apikeys")) {
+        apiKeys.openweather = prompt("Introduzca API key de OpenWeather. https://home.openweathermap.org/api_keys")
+        apiKeys.mapboxgl = prompt("Introduzca API key de MapBoxGL. https://account.mapbox.com/")
+        mapboxgl.accessToken = apiKeys.mapboxgl
+        localStorage.setItem("apikeys", JSON.stringify(apiKeys))
+        location.reload()
+        return
+    }
+    apiKeys = JSON.parse(localStorage.getItem("apikeys"))
+}
 
 function iniciarTimer() {
     setInterval(actualizarDatos, 1800000)
@@ -26,7 +41,7 @@ function actualizarDatos() {
     ubicacionesGuardadas.forEach((ubicacion) => {
         const horaActual = new Date().getTime()/1000.0
         if ((horaActual-ubicacion.timestamp > 1800)) {
-            url = `https://api.openweathermap.org/data/2.5/weather?q=${ubicacion.ciudad},${ubicacion.pais}&appid=${apiKey}&units=metric`
+            url = `https://api.openweathermap.org/data/2.5/weather?q=${ubicacion.ciudad},${ubicacion.pais}&appid=${apiKeys.openweather}&units=metric`
             enviarRequest(url)
         }
     })
