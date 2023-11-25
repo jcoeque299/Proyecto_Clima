@@ -97,7 +97,7 @@ function mostrarHTML(clima) {
     limpiarErrorForm(formulario)
 
     const card = document.createElement("div")
-    card.classList.add("max-w-sm", "rounded", "overflow-hidden", "shadow-lg", "mx-auto", "p-10")
+    card.classList.add("max-w-sm", "rounded", "overflow-hidden", "shadow-lg", "mr-auto", "p-8")
     card.style.backgroundColor = "rgb(142, 206, 228)"
 
     const cardTitle = document.createElement("p")
@@ -212,6 +212,7 @@ function limpiarToast() {
 }
 
 function mostrarErrorForm(referencia, mensaje) {
+    limpiarErrorForm(referencia)
     const errorHTML = document.createElement("p")
     errorHTML.classList.add("bg-red-600", "p-2", "text-center", "text-white")
     errorHTML.textContent = mensaje
