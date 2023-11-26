@@ -64,45 +64,54 @@ function borrarApiKeys() {
 }
 
 function generarMapa() {
-    map = new mapboxgl.Map({
-        container: 'map', // ID de mapContainer en el HTML
-        style: 'mapbox://styles/mapbox/streets-v12',
-        center: [-74.5, 40], // Longitud y latitud
-        zoom: 2
-    })
-    geolocate = new mapboxgl.GeolocateControl ({
-        positionOptions: {
-          enableHighAccuracy: true
-        },
-        fitBoundsOptions: {
-          linear: false
-        },
-        trackUserLocation: false
-    })
-    map.on("load", function() {
-        geolocate.trigger()
-    })
-    
-    map.on("click", obtenerCoordenadas)
-    formulario.addEventListener("submit", function() {
-        enviarRequest(event, "ciudad_pais")
-    })
-    
-    map.addControl(geolocate)
-    
-    geolocate.on("geolocate", function(e) {
-        e = {
-            lngLat: {
-                lng: e.coords.longitude,
-                lat: e.coords.latitude
-            }
+    url = `https://api.mapbox.com/geocoding/v5/mapbox.places/rndstrasdf.json?access_token=${apiKeys.mapboxgl}`
+    fetch(url)
+    .then(data => {
+        if (!data.ok) {
+          mostrarErrorToast("MapBoxGL API key inválida o bloqueada")
+          return
         }
-        obtenerCoordenadas(e)
+        map = new mapboxgl.Map({
+            container: 'map', // ID de mapContainer en el HTML
+            style: 'mapbox://styles/mapbox/streets-v12',
+            center: [-74.5, 40], // Longitud y latitud
+            zoom: 2
+        })
+        geolocate = new mapboxgl.GeolocateControl ({
+            positionOptions: {
+            enableHighAccuracy: true
+            },
+            fitBoundsOptions: {
+            linear: false
+            },
+            trackUserLocation: false
+        })
+        map.on("load", function() {
+            geolocate.trigger()
+        })
+        
+        map.on("click", obtenerCoordenadas)
+        
+        formulario.addEventListener("submit", function() {
+            enviarRequest(event, "ciudad_pais")
+        })
+
+        map.addControl(geolocate)
+        
+        geolocate.on("geolocate", function(e) {
+            e = {
+                lngLat: {
+                    lng: e.coords.longitude,
+                    lat: e.coords.latitude
+                }
+            }
+            obtenerCoordenadas(e)
+        })
+        geolocate._updateCamera = () => {} //Evita que la camara del mapa se mueva automáticamente al geolocalizar al usuario, lo cual provocaba problemas de rendimiento graves
+        geolocate._onError = () => {
+        mostrarWarningToast("Geolocalizacion no disponible")
+        }
     })
-    geolocate._updateCamera = () => {} //Evita que la camara del mapa se mueva automáticamente al geolocalizar al usuario, lo cual provocaba problemas de rendimiento graves
-    geolocate._onError = () => {
-    mostrarWarningToast("Geolocalizacion no disponible")
-    }
 }
 
 function validarDatos(e) {
@@ -144,7 +153,7 @@ function enviarRequest(e, modo) {
             throw new Error(data.message)
         }
         else if (data.cod === 401) {
-            mostrarErrorToast("Openweather API key errónea")
+            mostrarErrorToast("Openweather API key errónea o no activa")
             throw new Error(data.message)
         }
         clima = {

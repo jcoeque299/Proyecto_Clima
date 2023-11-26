@@ -62,24 +62,32 @@ function actualizarDatos() {
 function enviarRequest(url) {
     fetch(url)
     .then(data => data.json())
-    .then(data => clima = {
-        ciudad: data.name,
-        pais: data.sys.country,
-        tiempo: data.weather[0].icon,
-        temperatura: Math.round(data.main.temp),
-        temperaturaMax: Math.round(data.main.temp_max),
-        temperaturaMin: Math.round(data.main.temp_min),
-        sensacionTermica: Math.round(data.main.feels_like),
-        humedad: data.main.humidity,
-        viento: data.wind.speed,
-        timestamp: data.dt,
-        statusCode: data.cod
+    .then(function(data) {
+        if (data.cod === 429) {
+            mostrarErrorToast("Openweather API key bloqueada")
+            throw new Error(data.message)
+        }
+        else if (data.cod === 401) {
+            mostrarErrorToast("Openweather API key errónea o no activa")
+            throw new Error(data.message)
+        }
+        clima = {
+            longitud: data.coord.lon,
+            latitud: data.coord.lat,
+            ciudad: data.name,
+            pais: data.sys.country,
+            tiempo: data.weather[0].icon,
+            temperatura: Math.round(data.main.temp),
+            temperaturaMax: Math.round(data.main.temp_max),
+            temperaturaMin: Math.round(data.main.temp_min),
+            sensacionTermica: Math.round(data.main.feels_like),
+            humedad: data.main.humidity,
+            viento: data.wind.speed,
+            timestamp: data.dt,
+            statusCode: data.cod
+        }
     })
     .then(function(){
-        if (clima.statusCode === 401) {
-            mostrarErrorToast("Openweather API key inválida o bloqueada")
-            return
-        }
         modificarDatos(clima)
     })
     .catch(function(e) {
@@ -187,10 +195,6 @@ function mostrarErrorToast(mensaje) {
     toastContainer.classList.add('bg-red-600')
     toastMessage.textContent = mensaje
     toastContainer.classList.remove("hidden")
-
-    setTimeout(() => {
-        limpiarToast()
-    }, 6000)
 }
 
 function limpiarToast() {
