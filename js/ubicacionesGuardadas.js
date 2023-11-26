@@ -2,6 +2,8 @@
 
 const resultado = document.querySelector("#resultado")
 const btnBorrarApiKeys = document.querySelector("#borrarApiKeys")
+const toastContainer = document.querySelector("#toastContainer")
+const toastMessage = document.querySelector("#toastMessage")
 
 //Variables
 
@@ -70,9 +72,16 @@ function enviarRequest(url) {
         sensacionTermica: Math.round(data.main.feels_like),
         humedad: data.main.humidity,
         viento: data.wind.speed,
-        timestamp: data.dt
+        timestamp: data.dt,
+        statusCode: data.cod
     })
-    .then(clima => modificarDatos(clima))
+    .then(function(){
+        if (clima.statusCode === 401) {
+            mostrarErrorToast("Openweather API key inválida o bloqueada")
+            return
+        }
+        modificarDatos(clima)
+    })
     .catch(function(e) {
         console.log(e)
     })
@@ -171,4 +180,21 @@ function limpiarHTML() {
     while (resultado.firstChild) {
         resultado.removeChild(resultado.firstChild)
     }
+}
+
+function mostrarErrorToast(mensaje) {
+    limpiarToast()
+    toastContainer.classList.add('bg-red-600')
+    toastMessage.textContent = mensaje
+    toastContainer.classList.remove("hidden")
+
+    setTimeout(() => {
+        limpiarToast()
+    }, 6000)
+}
+
+function limpiarToast() {
+    toastContainer.classList.add("hidden")
+    toastContainer.classList.remove("bg-red-600", "bg-green-500", "bg-yellow-600")
+    toastMessage.textContent = ""
 }
