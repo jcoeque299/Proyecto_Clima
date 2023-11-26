@@ -11,10 +11,14 @@ const btnFormulario = document.querySelector("#ciudad_pais")
 const btnMapa = document.querySelector("#coordenadas")
 const toastContainer = document.querySelector("#toastContainer")
 const toastMessage = document.querySelector("#toastMessage")
+const btnBorrarApiKeys = document.querySelector("#borrarApiKeys")
 
 //Variables
 
-let apiKeys
+let apiKeys = {
+    openweather: "",
+    mapboxgl: ""
+}
 
 let map
 let geolocate
@@ -23,7 +27,7 @@ let coordenadasMarcadas
 
 let url
 let clima
-let ubicacionesGuardadas = JSON.parse(localStorage.getItem("url")) ?? []
+let ubicacionesGuardadas = JSON.parse(localStorage.getItem("climas")) ?? []
 
 //Event listeners
 
@@ -32,7 +36,7 @@ document.addEventListener("DOMContentLoaded", function() {
     desactivarBoton() //A pesar de tener el boton con la propiedad "disabled" en el HTML, si se actualiza la página y el formulario mantiene el texto del input y la seleccion del pais de antes de actualizar, el boton funcionará aunque visualmente esté apagado
 })
 
-
+btnBorrarApiKeys.addEventListener("click", borrarApiKeys)
 ciudad.addEventListener("input", validarDatos)
 ciudad.addEventListener("click", validarDatos)
 btnFormulario.addEventListener("click",alternarForm)
@@ -52,6 +56,11 @@ function obtenerApiKeys() {
     apiKeys = JSON.parse(localStorage.getItem("apikeys"))
     mapboxgl.accessToken = apiKeys.mapboxgl
     generarMapa()
+}
+
+function borrarApiKeys() {
+    localStorage.removeItem("apikeys")
+    location.reload()
 }
 
 function generarMapa() {
@@ -147,8 +156,9 @@ function enviarRequest(e, modo) {
         mostrarHTML(clima)
         obtenerEnlaceImagenUbicacion(clima)
     })
-    .catch(function() {
-        mostrarErrorForm(formulario, "Ubicación no encontrada")
+    .catch(function(e) {
+        console.log(e)
+        mostrarErrorForm(formulario, "Error al consultar ubicación")
     })
 }
 
@@ -258,10 +268,10 @@ function guardarUbicacion(clima) {
         mostrarErrorToast("No se puede guardar una ubicacion indeterminada")
     }
     else if (!ubicacionesGuardadas.some((ubicacion) => {
-        return ubicacion.ciudad === clima.ciudad
+        return (ubicacion.ciudad === clima.ciudad && ubicacion.pais === clima.pais)
     })) {
         ubicacionesGuardadas = [...ubicacionesGuardadas, clima]
-        localStorage.setItem("url", JSON.stringify(ubicacionesGuardadas))
+        localStorage.setItem("climas", JSON.stringify(ubicacionesGuardadas))
         mostrarOKToast("Ubicación guardada con éxito")
     }
     else {
